@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import numpy as np
+import json
+from html_template import html_template
 
 def calculate_circle_wgs84(lat_center, lon_center, radius, num_points=100):
     lat_center_rad = np.radians(lat_center)
@@ -20,36 +19,31 @@ def calculate_circle_wgs84(lat_center, lon_center, radius, num_points=100):
         lat_points.append(np.degrees(lat_rad))
         lon_points.append(np.degrees(lon_rad))
 
-    return list(zip(lat_points, lon_points))
+    return list(zip(lon_points, lat_points))
 
 # Example usage
 center_lat = 37.7749  # Latitude of center
 center_lon = -122.4194  # Longitude of center
-radius = 1000000  # Radius in meters
+radius = 100000  # Radius in meters
 circle_points = calculate_circle_wgs84(center_lat, center_lon, radius)
-lats, lons = zip(*circle_points)
+circle_coords = json.dumps(circle_points)
 
-# Ensure map appears by tting a non-interactive backend
-plt.switch_backend('Agg')
+# Fill in the HTML template with the circle coordinates and center coordinates
 
-# Plotting using Cartopy
-fig = plt.figure(figsize=(10, 5))
-ax = plt.axes(projection=ccrs.Mercator())
-ax.set_extent([center_lon - 25, center_lon + 25, center_lat - 25, center_lat + 25], crs=ccrs.PlateCarree())
-ax.coastlines()
+def DIYformat(string, dict):
+    for k,v in dict.items():
+        string = string.replace(k,str(v))
+    return string
 
-# Add US state borders
-states_provinces = cfeature.NaturalEarthFeature(
-    category='cultural',
-    name='admin_1_states_provinces_lines',
-    scale='50m',
-    facecolor='none')
-ax.add_feature(states_provinces, edgecolor='gray')
+replacement_map = {
+    '{center_lat}': center_lat,
+    '{center_lon}': center_lon,
+    '{circle_coords}': circle_coords
+}
 
-# Add the circle points
-ax.plot(lons, lats, 'r', transform=ccrs.Geodetic())
+html_content = DIYformat(html_template, replacement_map)
 
-# Save the plot as an image file
-plt.savefig('circle_on_map.png')
-
-print("The map with has been saved as 'circle_on_map.png'.")
+# Save the HTML content to a file
+html_file_path = 'interactive_maplibre_map.html'
+with open(html_file_path, 'w') as f:
+    f.write(html_content)
