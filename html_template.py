@@ -46,6 +46,22 @@ html_template = """
                     'line-width': 4
                 }
             });
+
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': 'route.geojson'
+                }
+            });
+
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'paint': {
+                    'line-color': '#888888',
+                    'line-width': 4
+                }
+            });
         });
     </script>
 </body>

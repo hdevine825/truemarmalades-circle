@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 import requests
 import polyline
+import shapely
+import geojson
 
 load_dotenv()
 
@@ -60,6 +62,8 @@ def get_route(start, end):
     response = requests.post(valhalla_url+'route', data=json.dumps(data))
     return response.text
 
+segments = []
+
 for i in range(len(circle_points)):
     if i == len(circle_points)-1:
         break
@@ -68,13 +72,15 @@ for i in range(len(circle_points)):
     dict = json.loads(response)
     polyline_segment = dict["trip"]["legs"][0]["shape"]
     print("Segment distance {} miles".format(dict["trip"]["legs"][0]["summary"]["length"]))
-    route_segment = polyline.decode(polyline_segment, 6)
-    if i == 0:
-        route = route_segment
-        continue
-    route = route_segment
-    
-        
+    route_segment = polyline.decode(polyline_segment, 6, geojson=True)
+    linestring = shapely.LineString(route_segment)
+    segments.append(linestring)
+
+route = shapely.union_all(segments)
+route = shapely.line_merge(route)
+route_geojson=geojson.Feature(geometry=route, properties={})
+
+route_geojson=geojson.dumps(route_geojson)
 
 
 # Fill in the HTML template with the circle coordinates and center coordinates
@@ -87,7 +93,7 @@ def DIYformat(string, dict):
 replacement_map = {
     '{center_lat}': center_lat,
     '{center_lon}': center_lon,
-    '{circle_coords}': circle_coords
+    '{circle_coords}': circle_coords,
 }
 
 html_content = DIYformat(html_template, replacement_map)
@@ -96,3 +102,8 @@ html_content = DIYformat(html_template, replacement_map)
 html_file_path = 'interactive_maplibre_map.html'
 with open(html_file_path, 'w') as f:
     f.write(html_content)
+
+geojson_path = 'route.geojson'
+
+with open(geojson_path, 'w') as f:
+    f.write(route_geojson)
