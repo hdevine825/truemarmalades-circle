@@ -19,7 +19,7 @@ html_template = """
             container: 'map',
             style: 'https://demotiles.maplibre.org/style.json', // Use MapLibre's demo style
             center: [{center_lon}, {center_lat}],
-            zoom: 4
+            zoom: 5
         });
 
         // Add a circle
