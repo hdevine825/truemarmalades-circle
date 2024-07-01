@@ -3,7 +3,7 @@ html_template = """
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>MapLibre GL Circle Example</title>
+    <title>MapLibre Map</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <script src="https://unpkg.com/maplibre-gl@1.15.2/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@1.15.2/dist/maplibre-gl.css" rel="stylesheet" />
@@ -49,8 +49,7 @@ html_template = """
 
             map.addSource('route', {
                 'type': 'geojson',
-                'data': 'route.geojson'
-                }
+                'data': 'https://raw.githubusercontent.com/hdevine825/truemarmalades-circle/main/route.geojson'
             });
 
             map.addLayer({
@@ -58,7 +57,7 @@ html_template = """
                 'type': 'line',
                 'source': 'route',
                 'paint': {
-                    'line-color': '#888888',
+                    'line-color': '#e80505',
                     'line-width': 4
                 }
             });

@@ -99,7 +99,7 @@ replacement_map = {
 html_content = DIYformat(html_template, replacement_map)
 
 # Save the HTML content to a file
-html_file_path = 'interactive_maplibre_map.html'
+html_file_path = 'maplibre_map.html'
 with open(html_file_path, 'w') as f:
     f.write(html_content)
 
