@@ -1,6 +1,12 @@
 import numpy as np
 import json
 from html_template import html_template
+import os
+from dotenv import load_dotenv
+import requests
+import polyline
+
+load_dotenv()
 
 def calculate_circle_wgs84(lat_center, lon_center, radius, num_points=100):
     lat_center_rad = np.radians(lat_center)
@@ -22,11 +28,54 @@ def calculate_circle_wgs84(lat_center, lon_center, radius, num_points=100):
     return list(zip(lon_points, lat_points))
 
 # Example usage
-center_lat = 37.7749  # Latitude of center
-center_lon = -122.4194  # Longitude of center
-radius = 100000  # Radius in meters
+center_lat = 41.336  # Latitude of center
+center_lon = -100.000  # Longitude of center
+radius = 600000  # Radius in meters
 circle_points = calculate_circle_wgs84(center_lat, center_lon, radius)
 circle_coords = json.dumps(circle_points)
+
+
+
+#Valhalla URL
+valhalla_url = os.getenv('VALHALLA_URL')
+route_costing = "bicycle"
+unit = "miles"
+
+def get_route(start, end):
+    data = {
+        "locations":[
+            {"lat": start[1], "lon": start[0]},
+            {"lat": end[1], "lon": end[0]}
+        ],
+        "costing": route_costing,
+        "costing_options":{
+            route_costing:{
+                "bicycle_type": "Cross", #play with settings
+            }
+        },
+        "directions_options": {
+            "units": unit
+        }
+    }
+    response = requests.post(valhalla_url+'route', data=json.dumps(data))
+    return response.text
+
+for i in range(len(circle_points)):
+    if i == len(circle_points)-1:
+        break
+    print("Requesting route from point {} to {}".format(i,i+1))
+    response = get_route(circle_points[i],circle_points[i+1])
+    dict = json.loads(response)
+    polyline_segment = dict["trip"]["legs"][0]["shape"]
+    print("Segment distance {} miles".format(dict["trip"]["legs"][0]["summary"]["length"]))
+    route_segment = polyline.decode(polyline_segment, 6)
+    if i == 0:
+        route = route_segment
+        continue
+    route = route_segment
+    
+        
+
 
 # Fill in the HTML template with the circle coordinates and center coordinates
 
