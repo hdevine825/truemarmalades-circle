@@ -79,13 +79,15 @@ def route2linestring(start, end):
 
 
 segments = []
+message = "Requesting route from circle {} point {} to circle {} point {}"
 
 for i in range(len(circle_points_1)):
     if i == len(circle_points_1)-1:
         break
-    print("Requesting route from point {} to {}".format(i,i+1))
+    print(message.format(1,i,2,i))
     linestring = route2linestring(circle_points_1[i],circle_points_2[i])
     segments.append(linestring)
+    print(message.format(2,i,1,i+1))
     linestring = route2linestring(circle_points_2[i],circle_points_1[i+1])
     segments.append(linestring)
 
@@ -103,10 +105,13 @@ def DIYformat(string, dict):
         string = string.replace(k,str(v))
     return string
 
+branch = "double-circle"
+
 replacement_map = {
     '{center_lat}': center_lat,
     '{center_lon}': center_lon,
     '{circle_coords}': circle_coords_1,
+    '{branch}': branch
 }
 
 html_content = DIYformat(html_template, replacement_map)
