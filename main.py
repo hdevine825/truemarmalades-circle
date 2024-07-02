@@ -10,11 +10,15 @@ import geojson
 
 load_dotenv()
 
-def calculate_circle_wgs84(lat_center, lon_center, radius, num_points=100):
+def calculate_circle_wgs84(lat_center, lon_center, radius, offset_points=0, num_points=100):
     lat_center_rad = np.radians(lat_center)
     lon_center_rad = np.radians(lon_center)
     R_earth = 6371000
-    angles = np.linspace(0, 2 * np.pi, num_points)
+    if offset_points > 0:
+        offset_rad = (offset_points/num_points)*(2 * np.pi)    
+    else:
+        offset_rad = 0
+    angles = np.linspace(0 + offset_rad, 2 * np.pi + offset_rad, num_points)
     lat_points = []
     lon_points = []
 
@@ -32,10 +36,13 @@ def calculate_circle_wgs84(lat_center, lon_center, radius, num_points=100):
 # Example usage
 center_lat = 41.336  # Latitude of center
 center_lon = -100.000  # Longitude of center
-radius = 600000  # Radius in meters
-circle_points = calculate_circle_wgs84(center_lat, center_lon, radius)
-circle_coords = json.dumps(circle_points)
+radius_1 = 600000  # Radius in meters
+radius_2 = 550000
+circle_points_1 = calculate_circle_wgs84(center_lat, center_lon, radius_1)
+circle_coords_1 = json.dumps(circle_points_1)
 
+circle_points_2 = calculate_circle_wgs84(center_lat, center_lon, radius_2, 0.5)
+circle_coords_2 = json.dumps(circle_points_2)
 
 
 #Valhalla URL
@@ -62,18 +69,24 @@ def get_route(start, end):
     response = requests.post(valhalla_url+'route', data=json.dumps(data))
     return response.text
 
-segments = []
-
-for i in range(len(circle_points)):
-    if i == len(circle_points)-1:
-        break
-    print("Requesting route from point {} to {}".format(i,i+1))
-    response = get_route(circle_points[i],circle_points[i+1])
+def route2linestring(start, end):
+    response = get_route(circle_points_1[i],circle_points_2[i])
     dict = json.loads(response)
     polyline_segment = dict["trip"]["legs"][0]["shape"]
     print("Segment distance {} miles".format(dict["trip"]["legs"][0]["summary"]["length"]))
     route_segment = polyline.decode(polyline_segment, 6, geojson=True)
-    linestring = shapely.LineString(route_segment)
+    return shapely.LineString(route_segment)
+
+
+segments = []
+
+for i in range(len(circle_points_1)):
+    if i == len(circle_points_1)-1:
+        break
+    print("Requesting route from point {} to {}".format(i,i+1))
+    linestring = route2linestring(circle_points_1[i],circle_points_2[i])
+    segments.append(linestring)
+    linestring = route2linestring(circle_points_2[i],circle_points_1[i+1])
     segments.append(linestring)
 
 route = shapely.union_all(segments)
@@ -93,7 +106,7 @@ def DIYformat(string, dict):
 replacement_map = {
     '{center_lat}': center_lat,
     '{center_lon}': center_lon,
-    '{circle_coords}': circle_coords,
+    '{circle_coords}': circle_coords_1,
 }
 
 html_content = DIYformat(html_template, replacement_map)
