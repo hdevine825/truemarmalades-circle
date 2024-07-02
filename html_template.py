@@ -49,7 +49,7 @@ html_template = """
 
             map.addSource('route', {
                 'type': 'geojson',
-                'data': 'https://raw.githubusercontent.com/hdevine825/truemarmalades-circle/main/route.geojson'
+                'data': 'https://raw.githubusercontent.com/hdevine825/truemarmalades-circle/{branch}/route.geojson'
             });
 
             map.addLayer({

@@ -91,6 +91,7 @@ for i in range(len(circle_points_1)):
     linestring = route2linestring(circle_points_2[i],circle_points_1[i+1])
     segments.append(linestring)
 
+print(len(segments))
 route = shapely.union_all(segments)
 route = shapely.line_merge(route)
 route_geojson=geojson.Feature(geometry=route, properties={})
