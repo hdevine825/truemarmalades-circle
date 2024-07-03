@@ -70,7 +70,7 @@ def get_route(start, end):
     return response.text
 
 def route2linestring(start, end):
-    response = get_route(circle_points_1[i],circle_points_2[i])
+    response = get_route(start,end)
     dict = json.loads(response)
     polyline_segment = dict["trip"]["legs"][0]["shape"]
     print("Segment distance {} miles".format(dict["trip"]["legs"][0]["summary"]["length"]))
@@ -88,12 +88,18 @@ for i in range(len(circle_points_1)):
     linestring = route2linestring(circle_points_1[i],circle_points_2[i])
     segments.append(linestring)
     print(message.format(2,i,1,i+1))
-    linestring = route2linestring(circle_points_2[i],circle_points_1[i+1])
-    segments.append(linestring)
+    linestring2 = route2linestring(circle_points_2[i],circle_points_1[i+1])
+    segments.append(linestring2)
 
-print(len(segments))
-route = shapely.union_all(segments)
-route = shapely.line_merge(route)
+print("Generated {} segments".format(len(segments)))
+
+coords = []
+for line in segments:
+    coords.extend(line.coords)
+
+route = shapely.linestrings(coords)
+
+#route = shapely.line_merge(segments)
 route_geojson=geojson.Feature(geometry=route, properties={})
 
 route_geojson=geojson.dumps(route_geojson)
@@ -106,7 +112,8 @@ def DIYformat(string, dict):
         string = string.replace(k,str(v))
     return string
 
-branch = "double-circle"
+#set branch to for geojson source
+branch = "pages"
 
 replacement_map = {
     '{center_lat}': center_lat,
