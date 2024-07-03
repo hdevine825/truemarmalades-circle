@@ -17,7 +17,7 @@ html_template = """
     <script>
         var map = new maplibregl.Map({
             container: 'map',
-            style: 'https://demotiles.maplibre.org/style.json', // Use MapLibre's demo style
+            style: 'style.json',
             center: [{center_lon}, {center_lat}],
             zoom: 5
         });
